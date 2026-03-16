@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env/
+venv/
+ENV/
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# Logs
+*.log
+
+# Other
+*.swp
+*.swo
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Temporary
+*.tmp
+*.bak
+~*
+
+# Ignore robot assets
+pal_tiago_dual.zip
+Clawdrobot.zip
+
+
+pal_tiago_dual/
+env_mujoco_2/
