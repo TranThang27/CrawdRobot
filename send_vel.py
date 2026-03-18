@@ -1,3 +1,8 @@
+
+
+
+
+
 import mujoco
 import numpy as np
 import math
@@ -5,7 +10,7 @@ import math
 # Biến toàn cục để lưu trạng thái
 current_v = {'fl': 0.0, 'fr': 0.0, 'rl': 0.0, 'rr': 0.0}
 current_wp_index = 0  
-
+last_print_time =0.0
 def get_robot_pose(model, data):
     """Hàm lấy tọa độ (x, y) và góc hướng (yaw) thực tế của robot trong MuJoCo"""
     base_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "base_link")
@@ -104,7 +109,7 @@ def follow_navigation_path(model, data, path_world, base_speed=1.5):
         target_r = v_forward + v_turn
 
         # Giới hạn trần vận tốc bánh xe để an toàn
-        max_wheel_speed = 3.0 
+        max_wheel_speed = 5.0 
         target_l = np.clip(target_l, -max_wheel_speed, max_wheel_speed)
         target_r = np.clip(target_r, -max_wheel_speed, max_wheel_speed)
 
@@ -120,7 +125,7 @@ def follow_navigation_path(model, data, path_world, base_speed=1.5):
     current_v['rl'] = limit_accel(current_v['rl'], target_l, MAX_ACCEL)
     current_v['fr'] = limit_accel(current_v['fr'], target_r, MAX_ACCEL)
     current_v['rr'] = limit_accel(current_v['rr'], target_r, MAX_ACCEL)
-
+    
     # Truyền lệnh điều khiển vào MuJoCo
     data.ctrl[id_fl] = current_v['fl']
     data.ctrl[id_rl] = current_v['rl']

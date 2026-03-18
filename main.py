@@ -17,7 +17,7 @@ renderer.update_scene(data, camera="head_camera")
 
 # --- PHẦN 1: TÌNH TOÁN ĐƯỜNG ĐI (NAVIGATION) TRƯỚC KHI CHẠY ---
 START_WORLD = (0.93, 0.52) 
-GOAL_WORLD = (2.06, 3.55) 
+GOAL_WORLD = (6.3 , 2.88) 
 print("=========================================")
 path_world = get_navigation_path(START_WORLD, GOAL_WORLD)
 
@@ -89,7 +89,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
                     nav_started = True
                     
                 # Gọi hàm bám đường đã viết ở send_vel.py
-                follow_navigation_path(model, data, path_world, base_speed=1.5)
+                follow_navigation_path(model, data, path_world, base_speed=2.5)
 
             # Bước nhảy vật lý
             mujoco.mj_step(model, data)
