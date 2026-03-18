@@ -117,7 +117,7 @@ def follow_navigation_path(model, data, path_world, base_speed=1.5):
     # 6. GIA TỐC SIÊU MƯỢT MÀ (Linear Acceleration Limiter)
     # ========================================================
     if current_wp_index == -1:
-        MAX_ACCEL = 0.1 # Phanh gấp khi chạm đích chống đâm tường bật ngược
+        MAX_ACCEL = 0.075 # Phanh gấp khi chạm đích chống đâm tường bật ngược
     else:
         MAX_ACCEL = 0.001  
     

@@ -12,7 +12,7 @@ RESOLUTION = 0.02  # 2cm mỗi pixel
 SCAN_X = (-3, 9)   # Chiều X (Mét)
 SCAN_Y = (-1, 5)   # Chiều Y (Mét)
 
-ROBOT_RADIUS = 0.14
+ROBOT_RADIUS = 0.144
 
 # ==========================================
 # 2. CÁC HÀM HỖ TRỢ CHUYỂN ĐỔI TỌA ĐỘ
