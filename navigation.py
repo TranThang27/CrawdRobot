@@ -2,21 +2,15 @@ import numpy as np
 import cv2
 import heapq
 import matplotlib.pyplot as plt
-import scipy.interpolate as si  # THÊM THƯ VIỆN SCIPY ĐỂ NỘI SUY
+import scipy.interpolate as si  
 
-# ==========================================
-# 1. CẤU HÌNH THÔNG SỐ BẢN ĐỒ VÀ ROBOT
-# ==========================================
 MAP_FILE = 'map.png' 
-RESOLUTION = 0.02  # 2cm mỗi pixel
-SCAN_X = (-3, 9)   # Chiều X (Mét)
-SCAN_Y = (-1, 5)   # Chiều Y (Mét)
+RESOLUTION = 0.02  
+SCAN_X = (-3, 9)   
+SCAN_Y = (-1, 5)   
 
 ROBOT_RADIUS = 0.144
 
-# ==========================================
-# 2. CÁC HÀM HỖ TRỢ CHUYỂN ĐỔI TỌA ĐỘ
-# ==========================================
 def world_to_grid(x, y):
     map_width_m = SCAN_X[1] - SCAN_X[0]
     map_height_m = SCAN_Y[1] - SCAN_Y[0]
@@ -35,9 +29,6 @@ def grid_to_world(px, py):
     y = SCAN_Y[1] - (py * RESOLUTION)
     return (x, y)
 
-# ==========================================
-# 3. THUẬT TOÁN A* TỐI ƯU
-# ==========================================
 def heuristic(a, b):
     return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)
 
@@ -80,37 +71,23 @@ def astar(grid, start, goal):
                 heapq.heappush(open_heap, (f_score[neighbor], neighbor))
     return None
 
-# ==========================================
-# 4. HÀM NỘI SUY (SMOOTHING) ĐƯỜNG ĐI
-# ==========================================
 def smooth_path(path_world, smooth_factor=0.5, num_points=100):
-    """
-    Sử dụng B-Spline để vuốt trơn đường đi.
-    smooth_factor: Càng lớn đường càng cong (có thể lẹm vào tường). Càng nhỏ càng bám sát A* gốc.
-    num_points: Số lượng điểm ảnh sinh ra trên quỹ đạo mới (waypoints).
-    """
-    # 1. Lọc bỏ các điểm trùng lặp hoặc quá sát nhau (ngăn hàm nội suy bị lỗi)
     unique_path = [path_world[0]]
     for p in path_world[1:]:
-        if np.linalg.norm(np.array(p) - np.array(unique_path[-1])) > 0.05: # Khoảng cách > 5cm
+        if np.linalg.norm(np.array(p) - np.array(unique_path[-1])) > 0.05: 
             unique_path.append(p)
             
-    # Phải có ít nhất 4 điểm để tạo đường cong B-spline bậc 3
     if len(unique_path) < 4:
         return path_world
 
-    # 2. Tách mảng tọa độ x và y
     x = [p[0] for p in unique_path]
     y = [p[1] for p in unique_path]
 
-    # 3. Tạo hàm nội suy (tck)
     tck, u = si.splprep([x, y], s=smooth_factor)
     
-    # 4. Sinh ra mảng điểm mới với độ phân giải cao hơn
     u_new = np.linspace(0, 1, num_points)
     x_new, y_new = si.splev(u_new, tck)
 
-    # Đóng gói lại thành list of tuples: [(x1, y1), (x2, y2), ...]
     smoothed_path = list(zip(x_new, y_new))
     return smoothed_path
 
@@ -138,29 +115,22 @@ def get_navigation_path(start_world, goal_world):
     if path_pixels is not None:
         path_world = [grid_to_world(p[0], p[1]) for p in path_pixels]
         
-        # --- TÍNH TOÁN SỐ ĐIỂM NỘI SUY LINH HOẠT ---
-        # 1. Tính tổng chiều dài đường đi (mét)
         total_dist = 0
         for i in range(len(path_world)-1):
             p1 = path_world[i]
             p2 = path_world[i+1]
             total_dist += np.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)
             
-        # 2. Quy định mật độ điểm: Ví dụ cứ 10cm (0.1m) cần 1 waypoint
-        # Nếu đường dài 5m -> sẽ có 50 điểm. Nếu dài 10m -> 100 điểm.
         desired_spacing = 0.1 
         dynamic_num_points = max(10, int(total_dist / desired_spacing))
         
         print(f"Tổng chiều dài đường đi: {total_dist:.2f}m. Sinh ra {dynamic_num_points} waypoints.")
 
-        # 3. Gọi hàm nội suy với số điểm mới
         smoothed_path = smooth_path(path_world, smooth_factor=0.3, num_points=dynamic_num_points)
         return smoothed_path
     
     return None
-# ==========================================
-# 5. THỰC THI CHÍNH & VẼ BẢN ĐỒ
-# ==========================================
+
 if __name__ == "__main__":
     try:
         img_raw = cv2.imread(MAP_FILE, cv2.IMREAD_GRAYSCALE)
@@ -173,7 +143,6 @@ if __name__ == "__main__":
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (inflation_pixels * 2, inflation_pixels * 2))
         inflated_grid = cv2.dilate(binary_map, kernel, iterations=1)
 
-        # Tọa độ thế giới (Mét)
         START_WORLD = (0.93, 0.52) 
         GOAL_WORLD = (2.06, 3.55)
 
@@ -192,21 +161,15 @@ if __name__ == "__main__":
         plt.imshow(display_img, origin='upper', extent=[SCAN_X[0], SCAN_X[1], SCAN_Y[0], SCAN_Y[1]])
 
         if path_pixels is not None:
-            # Chuyển đổi về hệ mét
             path_world = [grid_to_world(p[0], p[1]) for p in path_pixels]
             
-            # --- ÁP DỤNG NỘI SUY TẠI ĐÂY ---
-            # Chỉ sinh ra khoảng 50 waypoints để robot chạy cho nhẹ
             smoothed_path_world = smooth_path(path_world, smooth_factor=0.3, num_points=50)
             
-            # Để vẽ cho Matplotlib
             pw_arr = np.array(path_world)
             spw_arr = np.array(smoothed_path_world)
 
-            # Vẽ đường A* gốc (Màu cam, nét đứt, mờ)
             plt.plot(pw_arr[:, 0], pw_arr[:, 1], color='orange', linestyle='--', linewidth=1.5, alpha=0.7, label='A* Gốc (Zigzag)')
             
-            # Vẽ đường đã nội suy (Màu Cyan, nét liền, đậm)
             plt.plot(spw_arr[:, 0], spw_arr[:, 1], color='cyan', linewidth=2.5, label='Đường Nội Suy (B-Spline)')
             
             print(f"--- THÀNH CÔNG ---")
