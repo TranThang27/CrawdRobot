@@ -80,7 +80,7 @@ def follow_navigation_path(model, data, path_world, base_speed=1.5):
         target_r = np.clip(target_r, -max_wheel_speed, max_wheel_speed)
 
     if current_wp_index == -1:
-        MAX_ACCEL = 0.075 
+        MAX_ACCEL = 0.025
     else:
         MAX_ACCEL = 0.001  
     

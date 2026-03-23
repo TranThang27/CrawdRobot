@@ -9,7 +9,7 @@ RESOLUTION = 0.02
 SCAN_X = (-3, 9)   
 SCAN_Y = (-1, 5)   
 
-ROBOT_RADIUS = 0.144
+ROBOT_RADIUS = 0.15
 
 def world_to_grid(x, y):
     map_width_m = SCAN_X[1] - SCAN_X[0]
@@ -144,8 +144,8 @@ if __name__ == "__main__":
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (inflation_pixels * 2, inflation_pixels * 2))
         inflated_grid = cv2.dilate(binary_map, kernel, iterations=1)
 
-        START_WORLD = (0.93, 0.52) 
-        GOAL_WORLD = (2.0, 1.31) 
+        START_WORLD = (-0.88,0.88) 
+        GOAL_WORLD = (5.69,3.14)  
 
         start_pixel = world_to_grid(*START_WORLD)
         goal_pixel = world_to_grid(*GOAL_WORLD)
