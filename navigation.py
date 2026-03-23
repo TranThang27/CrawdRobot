@@ -126,7 +126,8 @@ def get_navigation_path(start_world, goal_world):
         
         print(f"Tổng chiều dài đường đi: {total_dist:.2f}m. Sinh ra {dynamic_num_points} waypoints.")
 
-        smoothed_path = smooth_path(path_world, smooth_factor=0.3, num_points=dynamic_num_points)
+        # Giảm smooth_factor (từ 0.3 xuống 0.05) để B-Spline bám sát các điểm A* gốc hơn, tránh tình trạng "cắt góc" lẹm vào vật cản
+        smoothed_path = smooth_path(path_world, smooth_factor=0.05, num_points=dynamic_num_points)
         return smoothed_path
     
     return None
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         inflated_grid = cv2.dilate(binary_map, kernel, iterations=1)
 
         START_WORLD = (0.93, 0.52) 
-        GOAL_WORLD = (2.06, 3.55)
+        GOAL_WORLD = (2.0, 1.31) 
 
         start_pixel = world_to_grid(*START_WORLD)
         goal_pixel = world_to_grid(*GOAL_WORLD)
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         if path_pixels is not None:
             path_world = [grid_to_world(p[0], p[1]) for p in path_pixels]
             
-            smoothed_path_world = smooth_path(path_world, smooth_factor=0.3, num_points=50)
+            smoothed_path_world = smooth_path(path_world, smooth_factor=0.05, num_points=50)
             
             pw_arr = np.array(path_world)
             spw_arr = np.array(smoothed_path_world)
