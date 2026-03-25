@@ -3,6 +3,7 @@ import mujoco.viewer
 import time
 import numpy as np
 import cv2
+import os
 
 # Giữ nguyên các module custom của bạn
 import send_vel
@@ -10,6 +11,12 @@ from send_vel import follow_navigation_path
 from navigation import get_navigation_path
 
 def run_scene():
+    if os.path.exists("start_trigger.txt"):
+        try:
+            os.remove("start_trigger.txt")
+        except:
+            pass
+
     # Cấu hình đường dẫn và khởi tạo
     XML_PATH = "env_mujoco_2/mujoco/scene.xml" 
     model = mujoco.MjModel.from_xml_path(XML_PATH)
@@ -55,6 +62,7 @@ def run_scene():
     drop_head_lowered_time = -1.0
     drop_arm_raised_time = -1.0
 
+    scene_started = False
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
         while viewer.is_running():
@@ -83,9 +91,11 @@ def run_scene():
                     except: pass
 
                 # Logic di chuyển
-                if data.time < 1.5:
-                    # Đứng yên đợi ổn định
-                    pass 
+                if not scene_started:
+                    # Đứng yên đợi tín hiệu từ file
+                    if data.time > 1.5 and os.path.exists("start_trigger.txt"):
+                        scene_started = True
+                        print("Bắt đầu chạy kịch bản!")
                 else:
                     if not nav_started:
                         nav_started = True
@@ -165,8 +175,7 @@ def run_scene():
 
                                         data.eq_active[weld_id] = 1 # KÍCH HOẠT DÍNH!
                                         is_grabbed = True
-                                        print(f"--- Đã đến đích! Đã 'dính' vật thể tại thời điểm: {data.time:.2f}s ---")
-
+                                        
                                         # Đưa tay về lại vị trí cất ban đầu
                                         target_arm_pose['arm_left_1_joint'] = 1.5
                                         target_arm_pose['arm_left_2_joint'] = 1.5
@@ -175,7 +184,7 @@ def run_scene():
                                         target_arm_pose['head_2_joint'] = 0.0 # Ngẩng đầu lên lại nhìn đường
 
                                         # Tính đường đi mới và tiếp tục di chuyển
-                                        print("Đang lập bản đồ đến vị trí tiếp theo...")
+                                       
                                         pos_now = data.body('base_link').xpos[:2]
                                         # Tôi tạo tọa độ quay về chỗ xuất phát (0.93, 0.52), bác có thể đổi thành (2.0, 1.31) nếu muốn
                                         new_path = get_navigation_path((pos_now[0], pos_now[1]), (5.69,3.14)) 
@@ -191,7 +200,7 @@ def run_scene():
                             if drop_head_lowered_time < 0:
                                 target_arm_pose['head_2_joint'] = -0.6 # Cúi xuống nhìn chỗ thả
                                 drop_head_lowered_time = data.time
-                                print("Đang cúi xuống nhìn chỗ thả...")
+                               
 
                             elif data.time - drop_head_lowered_time > 1.5:
                                 if drop_arm_raised_time < 0:
@@ -200,7 +209,7 @@ def run_scene():
                                     target_arm_pose['arm_left_3_joint'] = 0.0 # Xoay cánh tay lại
                                     target_arm_pose['arm_left_4_joint'] = 0.0 # Duỗi thẳng khuỷu tay
                                     drop_arm_raised_time = data.time
-                                    print("Đang giơ tay ra thả sách...")
+                                  
 
                                 elif data.time - drop_arm_raised_time > 1.5:
                                     # Tắt dính!
@@ -215,7 +224,7 @@ def run_scene():
                                             model.geom_contype[g] = 1 # Trả về mặc định
                                             model.geom_conaffinity[g] = 1
 
-                                        print("--- Đã thả sách thành công! ---")
+                                     
 
                                     # Thu tay về và ngẩng đầu
                                     if data.time - drop_arm_raised_time > 3.0:
@@ -236,3 +245,10 @@ def run_scene():
                 time.sleep(time_until_next_step)
 
     cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    print("Đang gửi tín hiệu bắt đầu kịch bản...")
+    # Tạo file báo hiệu cho trình mô phỏng đang chạy
+    with open("start_trigger.txt", "w") as f:
+        f.write("start")
+   
